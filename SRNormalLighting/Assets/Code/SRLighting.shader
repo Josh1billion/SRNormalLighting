@@ -73,7 +73,7 @@ VertexOutput vert(VertexInput i){
 
     o.pos = mul(UNITY_MATRIX_MVP, i.vertex);
     o.color = i.color; 
-    o.uv = float2(i.uv);
+    o.uv = float2(i.uv.xy);
     
     return o;
 }
@@ -81,7 +81,7 @@ VertexOutput vert(VertexInput i){
 float4 frag(VertexOutput i) : COLOR {
 
     float4 diffuseColor = tex2D(_MainTex, i.uv);
-    float3 ambientLighting = float3(UNITY_LIGHTMODEL_AMBIENT) * float3(diffuseColor) * float3(i.color);
+    float3 ambientLighting = float3(UNITY_LIGHTMODEL_AMBIENT.xyz) * float3(diffuseColor.xyz) * float3(i.color.xyz);
     
     return float4(ambientLighting, diffuseColor.a);
 }
@@ -134,7 +134,7 @@ fragmentInput vert(vertexInput i){
     o.pos = mul(UNITY_MATRIX_MVP, i.vertex);
     o.posWorld = mul(_Object2World, i.vertex);
     
-    o.uv = float2(i.uv);
+    o.uv = float2(i.uv.xy);
     o.color = i.color;
                 
     return o;
@@ -144,7 +144,7 @@ fragmentInput vert(vertexInput i){
 float4 frag(fragmentInput i) : COLOR {
             
     // dist to point light
-    float3 vertexToLightSource = float3(_WorldSpaceLightPos0) - i.posWorld;
+    float3 vertexToLightSource = float3(_WorldSpaceLightPos0.xyz) - i.posWorld;
     float3 distance = length(vertexToLightSource);    
 
     // calc attenuation
@@ -155,7 +155,7 @@ float4 frag(fragmentInput i) : COLOR {
     float3 normalDirection = (tex2D(_NormalTex, i.uv).xyz - 0.5f) * 2.0f;
     
     // mul by world to object matrix, which handles rotation, etc
-    normalDirection = float3(mul(float4(normalDirection, 0.5f), _World2Object));
+    normalDirection = float3(mul(float4(normalDirection, 0.5f), _World2Object).xyz);
     
     // negate Z so that lighting works as expected (sprites further away from the camera than a light are lit, etc.)
     normalDirection.z *= -1;
@@ -174,8 +174,8 @@ float4 frag(fragmentInput i) : COLOR {
 
     // calc color components
     float4 diffuseColor = tex2D(_MainTex, i.uv);
-    float3 diffuseReflection = float3(diffuseColor) * diffuseLevel * i.color * float3(_LightColor0);
-    float3 specularReflection = float3(_SpecularColor) * specularLevel * i.color * float3(_LightColor0);
+    float3 diffuseReflection = float3(diffuseColor.xyz) * diffuseLevel * i.color * float3(_LightColor0.xyz);
+    float3 specularReflection = float3(_SpecularColor.xyz) * specularLevel * i.color * float3(_LightColor0.xyz);
     
     // use the alpha from diffuse. it's not perfect if not also mul by diffuseColor.a 
     return diffuseColor.a * float4(diffuseReflection + specularReflection, diffuseColor.a);
@@ -189,5 +189,5 @@ ENDCG
    } // end SubShader
    
    // fallback shader - comment out during dev
-   // Fallback "Diffuse"
+//   Fallback "Diffuse"
 }
